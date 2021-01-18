@@ -1194,7 +1194,13 @@ action enqueue_frame(scid:cid, f:frame, e:quic_packet_type, probing:bool) = {
 	    queued_ack_eliciting(scid) := true;
     };
 #Hamid
+    if some (a:frame.ack) f *> a {
+        if _generating {
+            call debug_enqueue_ack(a.largest_acked);
+        };
+    };
 }
+import action debug_enqueue_ack(largest:pkt_num)
 
 #
 # The maximum number of bytes that may be transmitted to a give aid on a given stream is
