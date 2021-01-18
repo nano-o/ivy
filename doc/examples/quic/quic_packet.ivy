@@ -169,6 +169,7 @@ relation conn_draining(C:cid)
 relation draining_pkt_sent(C:cid)
 function last_pkt_num(C:cid,L:quic_packet_type) : pkt_num
 relation sent_pkt(C:cid,L:quic_packet_type,N:pkt_num)
+relation non_ack(C:cid,L:quic_packet_type,N:pkt_num)
 relation acked_pkt(C:cid,L:quic_packet_type,N:pkt_num)
 function max_acked(C:cid,L:quic_packet_type) : pkt_num
 function ack_credit(C:cid) : pkt_num
@@ -324,6 +325,9 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
 
     require ~sent_pkt(scid,pkt.ptype,pkt.seq_num);  # [4]
     sent_pkt(scid,pkt.ptype,pkt.seq_num) := true;  # [1]
+    if (_generating & queued_non_ack(scid)) {
+        non_ack(scid,pkt.ptype,pkt.seq_num) := true;
+    };
 
     # The payload may not be empty
 
@@ -415,11 +419,15 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     if queued_ack_eliciting(scid) {
        ack_credit(dcid) := ack_credit(dcid) + 1;
     };
+
     if ~queued_non_ack(scid) {
        ack_credit(scid) := ack_credit(scid) - 1;
-        if _generating & num_queued_frames(scid) > 0 {
-            call debug_ack_only;
+        if _generating & num_queued_frames(scid) > 0 & pkt.ptype = quic_packet_type.one_rtt {
+            call debug_one_rtt_ack_only;
         };
+    };
+    if wait {
+        wait := false;
     };
 
 #Hamid
@@ -463,7 +471,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     queued_ack_eliciting(scid) := false;
 #Hamid
 }
-import action debug_ack_only
+import action debug_one_rtt_ack_only
 
 # Procedures
 # ==========    
