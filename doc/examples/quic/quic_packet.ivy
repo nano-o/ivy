@@ -417,6 +417,9 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     };
     if ~queued_non_ack(scid) {
        ack_credit(scid) := ack_credit(scid) - 1;
+        if _generating & num_queued_frames(scid) > 0 {
+            call debug_ack_only;
+        };
     };
 
 #Hamid
@@ -460,6 +463,7 @@ around packet_event(src:ip.endpoint,dst:ip.endpoint,pkt:quic_packet) {
     queued_ack_eliciting(scid) := false;
 #Hamid
 }
+import action debug_ack_only
 
 # Procedures
 # ==========    
@@ -510,6 +514,7 @@ action handle_tls_extensions
      exts:vector[tls.extension],
      is_client_hello:bool) =
 {
+
 
     # We process the extensions in a message in order.
 
