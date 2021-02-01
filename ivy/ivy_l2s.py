@@ -367,20 +367,21 @@ def l2s_tactic(prover,goals,proof):
     # semantics applied.
     
     def prop_events(gprops):
-        res = []
+        pre = []
+        post = []
         for gprop in gprops:
             vs,t,env = gprop.variables, gprop.body, gprop.environ
-            res.append(AssignAction(old_l2s_g(vs, t, env)(*vs),l2s_g(vs, t, env)(*vs)).set_lineno(lineno))
-            res.append(HavocAction(l2s_g(vs, t, env)(*vs)).set_lineno(lineno))
+            pre.append(AssignAction(old_l2s_g(vs, t, env)(*vs),l2s_g(vs, t, env)(*vs)).set_lineno(lineno))
+            pre.append(HavocAction(l2s_g(vs, t, env)(*vs)).set_lineno(lineno))
         for gprop in gprops:
             vs,t,env = gprop.variables, gprop.body, gprop.environ
-            res.append(AssumeAction(forall(vs, lg.Implies(old_l2s_g(vs, t, env)(*vs),
+            pre.append(AssumeAction(forall(vs, lg.Implies(old_l2s_g(vs, t, env)(*vs),
                                                           l2s_g(vs, t, env)(*vs)))).set_lineno(lineno))
-            res.append(AssumeAction(forall(vs, lg.Implies(lg.And(lg.Not(old_l2s_g(vs, t, env)(*vs)), t),
+            pre.append(AssumeAction(forall(vs, lg.Implies(lg.And(lg.Not(old_l2s_g(vs, t, env)(*vs)), t),
                                                           lg.Not(l2s_g(vs, t, env)(*vs))))).set_lineno(lineno))
-            res.append(AssumeAction(forall(vs, lg.Implies(l2s_g(vs, t, env)(*vs), t))).set_lineno(lineno))
+            post.append(AssumeAction(forall(vs, lg.Implies(l2s_g(vs, t, env)(*vs), t))).set_lineno(lineno))
             
-        return res
+        return (pre, post)
             
 
     # This procedure generates code for an event corresponding to a
@@ -467,9 +468,10 @@ def l2s_tactic(prover,goals,proof):
         # Now, for every property event, we update the property state (none in this case)
         # and also assert the property semantic constraint. 
 
-        events = prop_events(event_props)
-        events += wait_events(event_waits)
-        res =  iact.postfix_action(res,events)
+        (pre_events, post_events) = prop_events(event_props)
+        post_events += wait_events(event_waits)
+        res =  iact.prefix_action(res,pre_events)
+        res =  iact.postfix_action(res,post_events)
         stmt.copy_formals(res) # HACK: This shouldn't be needed
         return res
 
