@@ -562,7 +562,8 @@ def interp_from_unsat_core(clauses1,clauses2,core,interpreted):
 
 def small_model_clauses(cls,final_cond=None,shrink=True):
     # Don't try to shrink the integers!
-    return get_small_model(cls,ivy_logic.uninterpreted_sorts(),[],final_cond=final_cond,shrink=shrink)
+    # TODO lu.unfold_definitions_clauses needs a theory context; is that always present?
+    return get_small_model(lu.unfold_definitions_clauses(cls),ivy_logic.uninterpreted_sorts(),[],final_cond=final_cond,shrink=shrink)
 
 class History(object):
     """ A history is a symbolically represented sequence of states. """
