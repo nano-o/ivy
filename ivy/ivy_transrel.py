@@ -40,6 +40,7 @@ import ivy_logic
 import ivy_logic_utils as lu
 import ivy_utils as iu
 from logic_util import is_tautology_equality
+import ivy_module as im
 
 
 def new(sym):
@@ -563,7 +564,8 @@ def interp_from_unsat_core(clauses1,clauses2,core,interpreted):
 def small_model_clauses(cls,final_cond=None,shrink=True):
     # Don't try to shrink the integers!
     # TODO lu.unfold_definitions_clauses needs a theory context; is that always present?
-    return get_small_model(lu.unfold_definitions_clauses(cls),ivy_logic.uninterpreted_sorts(),[],final_cond=final_cond,shrink=shrink)
+    with im.module.theory_context():
+        return get_small_model(lu.unfold_definitions_clauses(cls),ivy_logic.uninterpreted_sorts(),[],final_cond=final_cond,shrink=shrink)
 
 class History(object):
     """ A history is a symbolically represented sequence of states. """
