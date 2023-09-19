@@ -228,7 +228,7 @@ class Module(object):
         m = Module()
         from copy import copy
         for x,y in self.__dict__.items():
-            if x is 'sig':
+            if x == 'sig':
                 m.__dict__[x] = y.copy()
             else:
                 m.__dict__[x] = copy(y)
