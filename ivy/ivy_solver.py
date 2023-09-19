@@ -26,8 +26,8 @@ import sys
 
 # Following accounts for Z3 API symbols that are hidden as of Z3-4.5.0
 
-z3_to_ast_array = z3._to_ast_array if '_to_ast_array' in z3.__dict__ else z3.z3._to_ast_array
-z3_to_expr_ref = z3._to_expr_ref if '_to_expr_ref' in z3.__dict__ else z3.z3._to_expr_ref
+from ivy.z3.z3 import _to_ast_array as z3_to_ast_array
+from ivy.z3.z3 import _to_expr_ref as z3_to_expr_ref
 
 use_z3_enums = True
 
