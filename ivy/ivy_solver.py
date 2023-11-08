@@ -238,14 +238,19 @@ clear()
 z3_sorts_inv = {}
 
 def uninterpretedsort(us):
-    s = z3_sorts.get(us.rep,None)
-    if s is not None: return s
-    s = lookup_native(us,sorts,"sort")
-    if s == None:
-        s = z3.DeclareSort(us.rep)
-    z3_sorts[us.rep] = s
-    z3_sorts_inv[get_id(s)] = us
-    return s
+    sort = z3_sorts.get(us.rep,None)
+    if sort is not None: return sort
+    new_sort = lookup_native(us,sorts,"sort")
+    if new_sort is None:
+        arr_sort = sorts(us.name)
+        if arr_sort is None:
+            new_sort = z3.DeclareSort(us.rep)
+        else:
+            new_sort = arr
+    z3_sorts[us.rep] = new_sort
+    z3_sorts_inv[get_id(new_sort)] = us
+    return new_sort
+
 
 def functionsort(fs):
 #    print "fs.rng = {!r}".format(fs.rng)
